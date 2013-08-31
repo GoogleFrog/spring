@@ -588,7 +588,7 @@ float3 CUnit::GetErrorVector(int allyteam) const
 		// it's one of our own, or it's in LOS, so don't add an error
 		return ZeroVector;
 	}
-	if (gameSetup->ghostedBuildings && (losStatus[allyteam] & LOS_PREVLOS) && unitDef->IsBuildingUnit()) {
+	if (gameSetup->ghostedBuildings && (losStatus[allyteam] & LOS_PREVLOS) && unitDef->IsImmobileUnit()) {
 		// this is a ghosted building, so don't add an error
 		return ZeroVector;
 	}
@@ -1258,13 +1258,6 @@ void CUnit::DoDamage(
 
 
 void CUnit::ApplyImpulse(const float3& impulse) {
-	if (GetTransporter() != NULL) {
-		// transfer impulse to unit transporting us, scaled by its mass
-		// assume we came here straight from DoDamage, not LuaSyncedCtrl
-		GetTransporter()->ApplyImpulse((impulse * mass) / (GetTransporter()->mass));
-		return;
-	}
-
 	const float3& groundNormal = ground->GetNormal(pos.x, pos.z);
 	const float groundImpulseScale = std::min(0.0f, impulse.dot(groundNormal));
 	const float3 modImpulse = impulse - (groundNormal * groundImpulseScale * IsOnGround());
