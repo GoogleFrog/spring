@@ -73,6 +73,7 @@ public:
 	float maxBank;
 	float maxPitch;
 	float turnRadius;
+	float strafePassDistance;
 
 	float maxAileron;
 	float maxElevator;

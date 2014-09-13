@@ -3889,6 +3889,7 @@ int LuaSyncedRead::GetUnitMoveTypeData(lua_State* L)
 		HSTR_PUSH_NUMBER(L, "maxBank", sAMT->maxBank);
 		HSTR_PUSH_NUMBER(L, "maxPitch", sAMT->maxBank);
 		HSTR_PUSH_NUMBER(L, "turnRadius", sAMT->turnRadius);
+		HSTR_PUSH_NUMBER(L, "strafePassDistance", sAMT->strafePassDistance);
 
 		HSTR_PUSH_NUMBER(L, "maxAcc", sAMT->accRate);
 		HSTR_PUSH_NUMBER(L, "maxAileron", sAMT->maxAileron);

@@ -40,6 +40,7 @@ CR_REG_METADATA(CStrafeAirMoveType, (
 	CR_MEMBER(maxBank),
 	CR_MEMBER(maxPitch),
 	CR_MEMBER(turnRadius),
+	CR_MEMBER(strafePassDistance),
 
 	CR_MEMBER(maxAileron),
 	CR_MEMBER(maxElevator),
@@ -360,6 +361,7 @@ CStrafeAirMoveType::CStrafeAirMoveType(CUnit* owner):
 	maxBank(0.55f),
 	maxPitch(0.35f),
 	turnRadius(150),
+	strafePassDistance(90),
 	maxAileron(0.04f),
 	maxElevator(0.02f),
 	maxRudder(0.01f)
@@ -389,6 +391,7 @@ CStrafeAirMoveType::CStrafeAirMoveType(CUnit* owner):
 	maxBank = owner->unitDef->maxBank;
 	maxPitch = owner->unitDef->maxPitch;
 	turnRadius = owner->unitDef->turnRadius;
+	strafePassDistance = owner->unitDef->strafePassDistance;
 
 	wantedHeight =
 		(owner->unitDef->wantedHeight * 1.5f) +
@@ -842,7 +845,7 @@ bool CStrafeAirMoveType::UpdateFlying(float wantedHeight, float engine)
 	}
 
 	// RHS is needed for moving targets (when called by UpdateAttack)
-	const bool allowUnlockYR = (goalDist2D >= TurnRadius(turnRadius, spd.w) || goalVec.dot(owner->frontdir) > 0.0f);
+	const bool allowUnlockYR = (goalDist2D >= strafePassDistance || goalVec.dot(owner->frontdir) > 0.0f);
 	const bool forceUnlockYR = ((gs->frameNum - owner->lastFireWeapon) >= GAME_SPEED * 3);
 
 	// yaw and roll have to be unblocked after a certain time or aircraft
@@ -1345,6 +1348,7 @@ bool CStrafeAirMoveType::SetMemberValue(unsigned int memberHash, void* memberVal
 	static const unsigned int floatMemberHashes[] = {
 		MEMBER_LITERAL_HASH( "wantedHeight"),
 		MEMBER_LITERAL_HASH(   "turnRadius"),
+		MEMBER_LITERAL_HASH(   "strafePassDistance"),
 		MEMBER_LITERAL_HASH(      "accRate"),
 		MEMBER_LITERAL_HASH(      "decRate"),
 		MEMBER_LITERAL_HASH(       "maxAcc"), // synonym for accRate
@@ -1370,6 +1374,7 @@ bool CStrafeAirMoveType::SetMemberValue(unsigned int memberHash, void* memberVal
 	float* floatMemberPtrs[] = {
 		&wantedHeight,
 		&turnRadius,
+		&strafePassDistance,
 
 		&accRate, // hash("accRate") case
 		&decRate, // hash("decRate") case

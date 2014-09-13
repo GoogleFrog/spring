@@ -184,6 +184,7 @@ UnitDef::UnitDef()
 	, maxBank(0.0f)
 	, maxPitch(0.0f)
 	, turnRadius(0.0f)
+	, strafePassDistance(0.0f)
 	, wantedHeight(0.0f)
 	, verticalSpeed(0.0f)
 	, useSmoothMesh(false)
@@ -484,6 +485,7 @@ UnitDef::UnitDef(const LuaTable& udTable, const std::string& unitName, int id)
 	maxBank = udTable.GetFloat("maxBank", 0.8f);         // max roll
 	maxPitch = udTable.GetFloat("maxPitch", 0.45f);      // max pitch this plane tries to keep
 	turnRadius = udTable.GetFloat("turnRadius", 500.0f); // hint to CStrafeAirMoveType about required turn-radius
+	strafePassDistance = udTable.GetFloat("strafePassDistance", turnRadius); // distance travelled for overshoot after a strafe
 	verticalSpeed = udTable.GetFloat("verticalSpeed", 3.0f); // speed of takeoff and landing, at least for gunships
 
 	maxAileron  = udTable.GetFloat("maxAileron",  0.015f); // turn speed around roll axis

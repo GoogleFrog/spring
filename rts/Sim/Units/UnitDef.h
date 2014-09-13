@@ -263,6 +263,7 @@ public:
 	float maxBank;
 	float maxPitch;
 	float turnRadius;
+	float strafePassDistance;
 	float wantedHeight;
 	float verticalSpeed;
 

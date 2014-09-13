@@ -883,6 +883,7 @@ ADD_BOOL("canAttackWater",  canAttackWater); // CUSTOM
 	ADD_FLOAT("maxBank",      ud.maxBank);
 	ADD_FLOAT("maxPitch",     ud.maxPitch);
 	ADD_FLOAT("turnRadius",   ud.turnRadius);
+	ADD_FLOAT("strafePassDistance",   ud.strafePassDistance);
 	ADD_FLOAT("wantedHeight", ud.wantedHeight);
 	ADD_BOOL("hoverAttack",   ud.hoverAttack);
 	ADD_BOOL("airStrafe",     ud.airStrafe);
