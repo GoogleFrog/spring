@@ -7,7 +7,7 @@
 /*
 Calculate speed-multiplier for given height and slope data.
 */
-float CMoveMath::GroundSpeedMod(const MoveDef& moveDef, float height, float slope)
+float CMoveMath::GroundSpeedMod(const MoveDef& moveDef, bool pathOnly, float height, float slope)
 {
 	float speedMod = 0.0f;
 
@@ -18,17 +18,17 @@ float CMoveMath::GroundSpeedMod(const MoveDef& moveDef, float height, float slop
 		return speedMod;
 
 	// slope-mod
-	speedMod = 1.0f / (1.0f + slope * moveDef.slopeMod);
+	speedMod = 1.0f / (1.0f + slope * (pathOnly ? moveDef.pathSlopeMod : moveDef.slopeMod));
 	speedMod *= ((height < 0.0f)? waterDamageCost: 1.0f);
 	speedMod *= moveDef.GetDepthMod(height);
 
 	return speedMod;
 }
 
-float CMoveMath::GroundSpeedMod(const MoveDef& moveDef, float height, float slope, float dirSlopeMod)
+float CMoveMath::GroundSpeedMod(const MoveDef& moveDef, bool pathOnly, float height, float slope, float dirSlopeMod)
 {
 	if (!modInfo.allowDirectionalPathing) {
-		return GroundSpeedMod(moveDef, height, slope);
+		return GroundSpeedMod(moveDef, pathOnly, height, slope);
 	}
 	// Directional speed is now equal to regular except when:
 	// 1) Climbing out of places which are below max depth.
@@ -44,7 +44,7 @@ float CMoveMath::GroundSpeedMod(const MoveDef& moveDef, float height, float slop
 		return speedMod;
 
 	// slope-mod (speedMod is not increased or decreased by downhill slopes)
-	speedMod = 1.0f / (1.0f + std::max(0.0f, slope * dirSlopeMod) * moveDef.slopeMod);
+	speedMod = 1.0f / (1.0f + std::max(0.0f, slope * dirSlopeMod) * (pathOnly ? moveDef.pathSlopeMod : moveDef.slopeMod));
 	speedMod *= ((height < 0.0f)? waterDamageCost: 1.0f);
 	speedMod *= moveDef.GetDepthMod(height);
 

@@ -249,7 +249,8 @@ void CPathTexture::Update()
 				}
 
 				// NOTE: raw speedmods are not necessarily clamped to [0, 1]
-				const float sm = CMoveMath::GetPosSpeedMod(*md, sq.x, sq.y);
+				// Second argument is false to visualize the actual movement slowdown instead of path cost.
+				const float sm = CMoveMath::GetPosSpeedMod(*md, false, sq.x, sq.y);
 				infoTexMem[idx - offset] = GetSpeedModColor(sm * scale);
 			}
 		});

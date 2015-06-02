@@ -92,6 +92,7 @@ struct MoveDef {
 	float depthModParams[DEPTHMOD_NUM_PARAMS];
 	float maxSlope;
 	float slopeMod;
+	float pathSlopeMod;
 	float crushStrength;
 
 	// PF speedmod-multipliers for squares blocked by mobile units

@@ -13,10 +13,10 @@ class CMoveMath {
 	CR_DECLARE(CMoveMath)
 
 protected:
-	static float GroundSpeedMod(const MoveDef& moveDef, float height, float slope);
-	static float GroundSpeedMod(const MoveDef& moveDef, float height, float slope, float dirSlopeMod);
-	static float HoverSpeedMod(const MoveDef& moveDef, float height, float slope);
-	static float HoverSpeedMod(const MoveDef& moveDef, float height, float slope, float dirSlopeMod);
+	static float GroundSpeedMod(const MoveDef& moveDef, bool pathOnly, float height, float slope);
+	static float GroundSpeedMod(const MoveDef& moveDef, bool pathOnly, float height, float slope, float dirSlopeMod);
+	static float HoverSpeedMod(const MoveDef& moveDef, bool pathOnly, float height, float slope);
+	static float HoverSpeedMod(const MoveDef& moveDef, bool pathOnly, float height, float slope, float dirSlopeMod);
 	static float ShipSpeedMod(const MoveDef& moveDef, float height, float slope);
 	static float ShipSpeedMod(const MoveDef& moveDef, float height, float slope, float dirSlopeMod);
 
@@ -38,15 +38,15 @@ public:
 
 
 	// returns a speed-multiplier for given position or data
-	static float GetPosSpeedMod(const MoveDef& moveDef, unsigned xSquare, unsigned zSquare);
-	static float GetPosSpeedMod(const MoveDef& moveDef, unsigned xSquare, unsigned zSquare, float3 moveDir);
-	static float GetPosSpeedMod(const MoveDef& moveDef, const float3& pos)
+	static float GetPosSpeedMod(const MoveDef& moveDef, bool pathOnly, unsigned xSquare, unsigned zSquare);
+	static float GetPosSpeedMod(const MoveDef& moveDef, bool pathOnly, unsigned xSquare, unsigned zSquare, float3 moveDir);
+	static float GetPosSpeedMod(const MoveDef& moveDef, bool pathOnly, const float3& pos)
 	{
-		return (GetPosSpeedMod(moveDef, pos.x / SQUARE_SIZE, pos.z / SQUARE_SIZE));
+		return (GetPosSpeedMod(moveDef, pathOnly, pos.x / SQUARE_SIZE, pos.z / SQUARE_SIZE));
 	}
-	static float GetPosSpeedMod(const MoveDef& moveDef, const float3& pos, const float3& moveDir)
+	static float GetPosSpeedMod(const MoveDef& moveDef, bool pathOnly, const float3& pos, const float3& moveDir)
 	{
-		return (GetPosSpeedMod(moveDef, pos.x / SQUARE_SIZE, pos.z / SQUARE_SIZE, moveDir));
+		return (GetPosSpeedMod(moveDef, pathOnly, pos.x / SQUARE_SIZE, pos.z / SQUARE_SIZE, moveDir));
 	}
 
 	// tells whether a position is blocked (inaccessable for a given object's MoveDef)
@@ -78,7 +78,7 @@ public:
 /* Check if a given square-position is accessable by the MoveDef footprint. */
 inline CMoveMath::BlockType CMoveMath::IsBlocked(const MoveDef& moveDef, int xSquare, int zSquare, const CSolidObject* collider)
 {
-	if (GetPosSpeedMod(moveDef, xSquare, zSquare) == 0.0f)
+	if (GetPosSpeedMod(moveDef, true, xSquare, zSquare) == 0.0f)
 		return BLOCK_IMPASSABLE;
 
 	return (IsBlockedNoSpeedModCheck(moveDef, xSquare, zSquare, collider));

@@ -96,7 +96,7 @@ void QTPFS::NodeLayer::QueueUpdate(const SRectangle& r, const MoveDef* md) {
 			const unsigned int chmx = Clamp(int(hmx), md->xsizeh, r.x2 - md->xsizeh - 1);
 			const unsigned int chmz = Clamp(int(hmz), md->zsizeh, r.z2 - md->zsizeh - 1);
 
-			layerUpdate->speedMods[recIdx] = CMoveMath::GetPosSpeedMod(*md, hmx, hmz);
+			layerUpdate->speedMods[recIdx] = CMoveMath::GetPosSpeedMod(*md, true, hmx, hmz);
 			layerUpdate->blockBits[recIdx] = CMoveMath::IsBlockedNoSpeedModCheck(*md, chmx, chmz, NULL);
 			// layerUpdate->blockBits[recIdx] = CMoveMath::SquareIsBlocked(*md, hmx, hmz, NULL);
 		}
@@ -146,7 +146,7 @@ bool QTPFS::NodeLayer::Update(
 			const unsigned int chmx = Clamp(int(hmx), md->xsizeh, r.x2 - md->xsizeh - 1);
 			const unsigned int chmz = Clamp(int(hmz), md->zsizeh, r.z2 - md->zsizeh - 1);
 
-			const float minSpeedMod = (luSpeedMods == NULL)? CMoveMath::GetPosSpeedMod(*md, hmx, hmz): (*luSpeedMods)[recIdx];
+			const float minSpeedMod = (luSpeedMods == NULL)? CMoveMath::GetPosSpeedMod(*md, true, hmx, hmz): (*luSpeedMods)[recIdx];
 			const   int maxBlockBit = (luBlockBits == NULL)? CMoveMath::IsBlockedNoSpeedModCheck(*md, chmx, chmz, NULL): (*luBlockBits)[recIdx];
 			// NOTE:
 			//   movetype code checks ONLY the *CENTER* square of a unit's footprint

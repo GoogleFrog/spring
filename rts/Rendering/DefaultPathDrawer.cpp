@@ -178,7 +178,8 @@ void DefaultPathDrawer::UpdateExtraTexture(int extraTex, int starty, int endy, i
 							}
 
 							// NOTE: raw speedmods are not necessarily clamped to [0, 1]
-							const float sm = CMoveMath::GetPosSpeedMod(*md, sqx, sqy);
+							// Second argument is false to visualize the actual movement slowdown instead of path cost.
+							const float sm = MoveMath::GetPosSpeedMod(*md, false, sqx, sqy);
 							const SColor& smc = GetSpeedModColor(sm * scale);
 
 							texMem[texIdx + CLegacyInfoTextureHandler::COLOR_R] = smc.r;

@@ -30,6 +30,7 @@ CR_REG_METADATA(MoveDef, (
 	CR_MEMBER(depthModParams),
 	CR_MEMBER(maxSlope),
 	CR_MEMBER(slopeMod),
+	CR_MEMBER(pathSlopeMod),
 	CR_MEMBER(crushStrength),
 	CR_MEMBER(speedModMults),
 
@@ -163,6 +164,7 @@ MoveDef::MoveDef()
 	, depth(0.0f)
 	, maxSlope(1.0f)
 	, slopeMod(0.0f)
+	, pathSlopeMod(0.0f)
 
 	, crushStrength(0.0f)
 
@@ -274,6 +276,9 @@ MoveDef::MoveDef(const LuaTable& moveDefTable, int moveDefID) {
 	// = 0.00025 respectively)
 	//
 	slopeMod = moveDefTable.GetFloat("slopeMod", 4.0f / (maxSlope + 0.001f));
+	
+	// pathSlopeMod is the slopeMod used for pathfinding purposes.
+	pathSlopeMod = moveDefTable.GetFloat("pathSlopeMod", slopeMod);
 
 	// ground units hug the ocean floor when in water,
 	// ships stay at a "fixed" level (their waterline)
@@ -336,7 +341,7 @@ bool MoveDef::TestMoveSquare(
 
 	for (int z = zMin; (z <= zMax) && ret; z++) {
 		for (int x = xMin; (x <= xMax) && ret; x++) {
-			const float speedMod = CMoveMath::GetPosSpeedMod(*this, xTestMoveSqr + x, zTestMoveSqr + z, testMoveDir);
+			const float speedMod = CMoveMath::GetPosSpeedMod(*this, true, xTestMoveSqr + x, zTestMoveSqr + z, testMoveDir);
 			minSpeedMod_ = std::min(minSpeedMod_, speedMod);
 			if (testTerrain) { ret &= (speedMod > 0.0f); }
 		}

@@ -261,7 +261,7 @@ int2 CPathEstimator::FindOffset(const MoveDef& moveDef, unsigned int blockX, uns
 	// search for an accessible position within this block
 	/*for (unsigned int z = 0; z < BLOCK_SIZE; ++z) {
 		for (unsigned int x = 0; x < BLOCK_SIZE; ++x) {
-			float speedMod = CMoveMath::GetPosSpeedMod(moveDef, lowerX + x, lowerZ + z);
+			float speedMod = CMoveMath::GetPosSpeedMod(moveDef, true, lowerX + x, lowerZ + z);
 			bool curblock = (speedMod == 0.0f) || CMoveMath::IsBlockedStructure(moveDef, lowerX + x, lowerZ + z, NULL);
 
 			if (!curblock) {
@@ -288,7 +288,7 @@ int2 CPathEstimator::FindOffset(const MoveDef& moveDef, unsigned int blockX, uns
 		}
 
 		const int2 blockPos(lowerX + ob.offset.x, lowerZ + ob.offset.y);
-		const float speedMod = CMoveMath::GetPosSpeedMod(moveDef, blockPos.x, blockPos.y);
+		const float speedMod = CMoveMath::GetPosSpeedMod(moveDef, true, blockPos.x, blockPos.y);
 
 		//assert((blockArea / (0.001f + speedMod) >= 0.0f);
 		const float cost = ob.cost + (blockArea / (0.001f + speedMod));

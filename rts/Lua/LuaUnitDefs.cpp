@@ -475,6 +475,7 @@ static int MoveDefTable(lua_State* L, const void* data)
 	HSTR_PUSH_NUMBER(L, "depth",         md->depth);
 	HSTR_PUSH_NUMBER(L, "maxSlope",      md->maxSlope);
 	HSTR_PUSH_NUMBER(L, "slopeMod",      md->slopeMod);
+	HSTR_PUSH_NUMBER(L, "pathSlopeMod",  md->pathSlopeMod);
 	HSTR_PUSH_NUMBER(L, "depthMod",      md->depthModParams[MoveDef::DEPTHMOD_LIN_COEFF]);
 	HSTR_PUSH_NUMBER(L, "crushStrength", md->crushStrength);
 

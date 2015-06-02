@@ -358,7 +358,8 @@ void QTPFSPathDrawer::UpdateExtraTexture(int extraTex, int starty, int endy, int
 						// use node-modifiers as baseline so visualisation is in sync with alt+B
 						const QTPFS::QTNode* node = static_cast<const QTPFS::QTNode*>(nl.GetNode(sqx, sqz));
 
-						const float sm = CMoveMath::GetPosSpeedMod(*md, sqx, sqz);
+						// Second argument is false to visualize the actual movement slowdown instead of path cost.
+						const float sm = CMoveMath::GetPosSpeedMod(*md, false, sqx, sqz);
 						const SColor& smc = GetSpeedModColor((los || losSqr)? node->speedModAvg * smr: sm);
 						#else
 						float scale = 1.0f;
@@ -370,7 +371,8 @@ void QTPFSPathDrawer::UpdateExtraTexture(int extraTex, int starty, int endy, int
 							if (CMoveMath::IsBlocked(*md, sqx + 1, sqz + 1) & CMoveMath::BLOCK_STRUCTURE) { scale -= 0.25f; }
 						}
 
-						const float sm = CMoveMath::GetPosSpeedMod(md, sqx, sqz);
+						// Second argument is false to visualize the actual movement slowdown instead of path cost.
+						const float sm = CMoveMath::GetPosSpeedMod(md, false, sqx, sqz);
 						const SColor& smc = GetSpeedModColor(sm * scale);
 						#endif
 

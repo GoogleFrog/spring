@@ -146,9 +146,9 @@ void CPathFinder::TestNeighborSquares(
 		// hint: use posSpeedMod for PE! cause it assumes path costs are bidirectional and so it only saves one `cost` for left & right movement
 		// hint2: not worth to put in front of the above code, it only has a ~2% chance (heavily depending on the map) to early-out
 		if (!pfDef.dirIndependent) {
-			sqState.speedMod = CMoveMath::GetPosSpeedMod(moveDef, ngbSquareCoors.x, ngbSquareCoors.y, PF_DIRECTION_VECTORS_3D[ PathDir2PathOpt(dir) ]);
+			sqState.speedMod = CMoveMath::GetPosSpeedMod(moveDef, true, ngbSquareCoors.x, ngbSquareCoors.y, PF_DIRECTION_VECTORS_3D[ PathDir2PathOpt(dir) ]);
 		} else {
-			sqState.speedMod = CMoveMath::GetPosSpeedMod(moveDef, ngbSquareCoors.x, ngbSquareCoors.y);
+			sqState.speedMod = CMoveMath::GetPosSpeedMod(moveDef, true, ngbSquareCoors.x, ngbSquareCoors.y);
 		}
 		if (sqState.speedMod == 0.f) {
 			blockStates.nodeMask[square->nodeNum] |= PATHOPT_CLOSED;

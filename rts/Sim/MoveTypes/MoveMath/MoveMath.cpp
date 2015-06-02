@@ -42,7 +42,7 @@ float CMoveMath::yLevel(const MoveDef& moveDef, const float3& pos)
 
 
 /* calculate the local speed-modifier for this MoveDef */
-float CMoveMath::GetPosSpeedMod(const MoveDef& moveDef, unsigned xSquare, unsigned zSquare)
+float CMoveMath::GetPosSpeedMod(const MoveDef& moveDef, bool pathOnly, unsigned xSquare, unsigned zSquare)
 {
 	if (xSquare >= mapDims.mapx || zSquare >= mapDims.mapy)
 		return 0.0f;
@@ -56,9 +56,9 @@ float CMoveMath::GetPosSpeedMod(const MoveDef& moveDef, unsigned xSquare, unsign
 	const CMapInfo::TerrainType& tt = mapInfo->terrainTypes[squareTerrType];
 
 	switch (moveDef.speedModClass) {
-		case MoveDef::Tank:  { return (GroundSpeedMod(moveDef, height, slope) * tt.tankSpeed ); } break;
-		case MoveDef::KBot:  { return (GroundSpeedMod(moveDef, height, slope) * tt.kbotSpeed ); } break;
-		case MoveDef::Hover: { return ( HoverSpeedMod(moveDef, height, slope) * tt.hoverSpeed); } break;
+		case MoveDef::Tank:  { return (GroundSpeedMod(moveDef, pathOnly, height, slope) * tt.tankSpeed ); } break;
+		case MoveDef::KBot:  { return (GroundSpeedMod(moveDef, pathOnly, height, slope) * tt.kbotSpeed ); } break;
+		case MoveDef::Hover: { return ( HoverSpeedMod(moveDef, pathOnly, height, slope) * tt.hoverSpeed); } break;
 		case MoveDef::Ship:  { return (  ShipSpeedMod(moveDef, height, slope) * tt.shipSpeed ); } break;
 		default: {} break;
 	}
@@ -66,7 +66,7 @@ float CMoveMath::GetPosSpeedMod(const MoveDef& moveDef, unsigned xSquare, unsign
 	return 0.0f;
 }
 
-float CMoveMath::GetPosSpeedMod(const MoveDef& moveDef, unsigned xSquare, unsigned zSquare, float3 moveDir)
+float CMoveMath::GetPosSpeedMod(const MoveDef& moveDef, bool pathOnly, unsigned xSquare, unsigned zSquare, float3 moveDir)
 {
 	if (xSquare >= mapDims.mapx || zSquare >= mapDims.mapy)
 		return 0.0f;
@@ -93,9 +93,9 @@ float CMoveMath::GetPosSpeedMod(const MoveDef& moveDef, unsigned xSquare, unsign
 	const float dirSlopeMod = -moveDir.dot(sqrNormal);
 
 	switch (moveDef.speedModClass) {
-		case MoveDef::Tank:  { return (GroundSpeedMod(moveDef, height, slope, dirSlopeMod) * tt.tankSpeed ); } break;
-		case MoveDef::KBot:  { return (GroundSpeedMod(moveDef, height, slope, dirSlopeMod) * tt.kbotSpeed ); } break;
-		case MoveDef::Hover: { return ( HoverSpeedMod(moveDef, height, slope, dirSlopeMod) * tt.hoverSpeed); } break;
+		case MoveDef::Tank:  { return (GroundSpeedMod(moveDef, pathOnly, height, slope, dirSlopeMod) * tt.tankSpeed ); } break;
+		case MoveDef::KBot:  { return (GroundSpeedMod(moveDef, pathOnly, height, slope, dirSlopeMod) * tt.kbotSpeed ); } break;
+		case MoveDef::Hover: { return ( HoverSpeedMod(moveDef, pathOnly, height, slope, dirSlopeMod) * tt.hoverSpeed); } break;
 		case MoveDef::Ship:  { return (  ShipSpeedMod(moveDef, height, slope, dirSlopeMod) * tt.shipSpeed ); } break;
 		default: {} break;
 	}

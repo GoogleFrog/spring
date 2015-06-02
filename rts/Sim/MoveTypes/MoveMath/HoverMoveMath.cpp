@@ -7,7 +7,7 @@
 /*
 Calculate speed-multiplier for given height and slope data.
 */
-float CMoveMath::HoverSpeedMod(const MoveDef& moveDef, float height, float slope)
+float CMoveMath::HoverSpeedMod(const MoveDef& moveDef, bool pathOnly, float height, float slope)
 {
 	// no speed-penalty if on water (unless noWaterMove)
 	if (height < 0.0f)
@@ -16,13 +16,13 @@ float CMoveMath::HoverSpeedMod(const MoveDef& moveDef, float height, float slope
 	if (slope > moveDef.maxSlope)
 		return 0.0f;
 
-	return (1.0f / (1.0f + slope * moveDef.slopeMod));
+	return (1.0f / (1.0f + slope * (pathOnly ? moveDef.pathSlopeMod : moveDef.slopeMod)));
 }
 
-float CMoveMath::HoverSpeedMod(const MoveDef& moveDef, float height, float slope, float dirSlopeMod)
+float CMoveMath::HoverSpeedMod(const MoveDef& moveDef, bool pathOnly, float height, float slope, float dirSlopeMod)
 {
 	if (!modInfo.allowDirectionalPathing) {
-		return HoverSpeedMod(moveDef, height, slope);
+		return HoverSpeedMod(moveDef, pathOnly, height, slope);
 	}
 
 	// Only difference direction can have is making hills climbing slower.
@@ -34,6 +34,6 @@ float CMoveMath::HoverSpeedMod(const MoveDef& moveDef, float height, float slope
 	if (slope > moveDef.maxSlope)
 		return 0.0f;
 
-	return (1.0f / (1.0f + std::max(0.0f, slope * dirSlopeMod) * moveDef.slopeMod));
+	return (1.0f / (1.0f + std::max(0.0f, slope * dirSlopeMod) * (pathOnly ? moveDef.pathSlopeMod : moveDef.slopeMod)));
 }
 

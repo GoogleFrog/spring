@@ -563,7 +563,7 @@ void CGroundMoveType::ChangeSpeed(float newWantedSpeed, bool wantReverse, bool f
 			// the pathfinders do NOT check the entire footprint to determine
 			// passability wrt. terrain (only wrt. structures), so we look at
 			// the center square ONLY for our current speedmod
-			const float groundSpeedMod = CMoveMath::GetPosSpeedMod(*md, owner->pos, flatFrontDir);
+			const float groundSpeedMod = CMoveMath::GetPosSpeedMod(*md, false, owner->pos, flatFrontDir);
 
 			const float curGoalDistSq = (owner->pos - goalPos).SqLength2D();
 			const float minGoalDistSq = Square(BrakingDistance(currentSpeed, mix(decRate, accRate, reversing)));
@@ -1652,7 +1652,7 @@ void CGroundMoveType::HandleStaticObjectCollision(
 				const int zabs = zmid + z;
 
 				if (checkTerrain) {
-					if (CMoveMath::GetPosSpeedMod(*colliderMD, xabs, zabs, collider->speed) > 0.01f)
+					if (CMoveMath::GetPosSpeedMod(*colliderMD, true, xabs, zabs, collider->speed) > 0.01f)
 						continue;
 				} else {
 					if ((CMoveMath::SquareIsBlocked(*colliderMD, xabs, zabs, collider) & CMoveMath::BLOCK_STRUCTURE) == 0)
