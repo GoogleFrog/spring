@@ -1957,7 +1957,7 @@ bool CGroundMoveType::HandleStaticObjectCollision(
 
 	{
 		const float  colRadiusSum = colliderRadius + collideeRadius;
-		const float   sepDistance = separationVector.Length() + 0.1f;
+		const float   sepDistance = separationVector.Length() + 0.001f;
 		const float   penDistance = std::min(sepDistance - colRadiusSum, 0.0f);
 		const float  colSlideSign = -Sign(collidee->pos.dot(rgt) - pos.dot(rgt));
 
@@ -2096,8 +2096,8 @@ void CGroundMoveType::HandleUnitCollisions(
 		//   behavior (making each party stop and block the other) has many corner-cases
 		//   so instead have collider respond as though collidee is semi-static obstacle
 		//   this also happens when both parties are pushResistant
-		pushCollider = pushCollider && (alliedCollision || allowPEU || !collider->blockEnemyPushing);
-		pushCollidee = pushCollidee && (alliedCollision || allowPEU || !collidee->blockEnemyPushing);
+		pushCollider = pushCollider && (alliedCollision || allowPEU || !collider->blockEnemyPushing || colliderParams.x > 0.8f * collideeParams.x);
+		pushCollidee = pushCollidee && (alliedCollision || allowPEU || !collidee->blockEnemyPushing || collideeParams.x > 0.8f * colliderParams.x);
 		pushCollider = pushCollider && (!collider->beingBuilt && !collider->UsingScriptMoveType() && !collider->moveType->IsPushResistant());
 		pushCollidee = pushCollidee && (!collidee->beingBuilt && !collidee->UsingScriptMoveType() && !collidee->moveType->IsPushResistant());
 
@@ -2118,6 +2118,8 @@ void CGroundMoveType::HandleUnitCollisions(
 			continue;
 		}
 
+		const bool moveCollider = ((pushCollider || !pushCollidee) && colliderMobile);
+		const bool moveCollidee = ((pushCollidee || !pushCollider) && collideeMobile);
 
 		const float colliderRelRadius = colliderParams.y / (colliderParams.y + collideeParams.y);
 		const float collideeRelRadius = collideeParams.y / (colliderParams.y + collideeParams.y);
@@ -2125,9 +2127,10 @@ void CGroundMoveType::HandleUnitCollisions(
 			(colliderParams.y * colliderRelRadius + collideeParams.y * collideeRelRadius):
 			(colliderParams.y                     + collideeParams.y                    );
 
-		const float  sepDistance = separationVect.Length() + 0.1f;
+		const float  sepDistance = separationVect.Length() + 0.001f;
 		const float  penDistance = std::max(collisionRadiusSum - sepDistance, 1.0f);
-		const float  sepResponse = std::min(SQUARE_SIZE * 2.0f, penDistance * 0.5f);
+		const float  penFactor   = penDistance / collisionRadiusSum;
+		const float  sepResponse = std::min(SQUARE_SIZE * 2.0f, penDistance * std::min(1.0f, 10.0f * penFactor));
 
 		const float3 sepDirection   = separationVect / sepDistance;
 		const float3 colResponseVec = sepDirection * XZVector * sepResponse;
@@ -2160,21 +2163,30 @@ void CGroundMoveType::HandleUnitCollisions(
 		const float colliderSlideSign = Sign( separationVect.dot(collider->rightdir));
 		const float collideeSlideSign = Sign(-separationVect.dot(collidee->rightdir));
 
-		const float3 colliderPushVec  =  colResponseVec * colliderMassScale * int(!ignoreCollidee);
-		const float3 collideePushVec  = -colResponseVec * collideeMassScale;
+		const float3 colliderPushVec  =  colResponseVec * (moveCollidee ? colliderMassScale : 1.0f) * int(!ignoreCollidee);
+		const float3 collideePushVec  = -colResponseVec * (moveCollider ? collideeMassScale : 1.0f) * collideeMassScale;
 		const float3 colliderSlideVec = collider->rightdir * colliderSlideSign * (1.0f / penDistance) * r2;
 		const float3 collideeSlideVec = collidee->rightdir * collideeSlideSign * (1.0f / penDistance) * r1;
 		const float3 colliderMoveVec  = colliderPushVec + colliderSlideVec;
 		const float3 collideeMoveVec  = collideePushVec + collideeSlideVec;
 
-		const bool moveCollider = ((pushCollider || !pushCollidee) && colliderMobile);
-		const bool moveCollidee = ((pushCollidee || !pushCollider) && collideeMobile);
+		if (moveCollider) {
+			if (colliderMD->TestMoveSquare(collider, collider->pos + colliderMoveVec, colliderMoveVec))
+				collider->Move(colliderMoveVec, true);
+			// Zero unit velocity in the direction of the other unit, it is is moving towards the other unit.
+			const float colliderImpulseScale = collider->frontdir.dot(sepDirection) / collider->frontdir.Length();
+			if (colliderImpulseScale > 0.f)
+				collider->ApplyImpulse(static_cast<const float3>(collider->speed) * colliderImpulseScale * -1.0f);
+		}
 
-		if (moveCollider && colliderMD->TestMoveSquare(collider, collider->pos + colliderMoveVec, colliderMoveVec))
-			collider->Move(colliderMoveVec, true);
-
-		if (moveCollidee && collideeMD->TestMoveSquare(collidee, collidee->pos + collideeMoveVec, collideeMoveVec))
-			collidee->Move(collideeMoveVec, true);
+		if (moveCollidee) {
+			if (collideeMD->TestMoveSquare(collidee, collidee->pos + collideeMoveVec, collideeMoveVec))
+				collidee->Move(collideeMoveVec, true);
+			// Zero unit velocity in the direction of the other unit, it is is moving towards the other unit.
+			const float collidieeImpulseScale = -1.0f * (collidee->frontdir.dot(sepDirection) / collidee->frontdir.Length());
+			if (collidieeImpulseScale > 0.f)
+				collidee->ApplyImpulse(static_cast<const float3>(collidee->speed) * collidieeImpulseScale * -1.0f);
+		}
 	}
 }
 
