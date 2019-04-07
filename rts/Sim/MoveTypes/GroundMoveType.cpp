@@ -1958,11 +1958,11 @@ bool CGroundMoveType::HandleStaticObjectCollision(
 	{
 		const float  colRadiusSum = colliderRadius + collideeRadius;
 		const float   sepDistance = separationVector.Length() + 0.001f;
-		const float   penDistance = std::min(sepDistance - colRadiusSum, 0.0f);
+		const float   penDistance = std::max(colRadiusSum - sepDistance, 0.0f);
 		const float  colSlideSign = -Sign(collidee->pos.dot(rgt) - pos.dot(rgt));
 
-		const float strafeScale = std::min(std::max(currentSpeed, (oldPos - pos).Length()), std::max(0.0f, -penDistance * 0.5f)) * (1 - checkYardMap * false);
-		const float bounceScale = std::min(std::max(currentSpeed, (oldPos - pos).Length()), std::max(0.0f, -penDistance       )) * (1 - checkYardMap *  true);
+		const float strafeScale = std::min(std::max(currentSpeed, (oldPos - pos).Length()), penDistance * 0.5f) * (1 - checkYardMap * false);
+		const float bounceScale = penDistance * (1 - checkYardMap *  true);
 
 		strafeVec = (             rgt * colSlideSign) * strafeScale;
 		bounceVec = (separationVector /  sepDistance) * bounceScale;
@@ -1984,7 +1984,7 @@ bool CGroundMoveType::HandleStaticObjectCollision(
 		}
 
 		// same here
-		return (canRequestPath && (penDistance < 0.0f));
+		return (canRequestPath && (penDistance > 0.0f));
 	}
 }
 
