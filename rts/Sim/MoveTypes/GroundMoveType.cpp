@@ -2173,19 +2173,23 @@ void CGroundMoveType::HandleUnitCollisions(
 		if (moveCollider) {
 			if (colliderMD->TestMoveSquare(collider, collider->pos + colliderMoveVec, colliderMoveVec))
 				collider->Move(colliderMoveVec, true);
-			// Zero unit velocity in the direction of the other unit, it is is moving towards the other unit.
-			const float colliderImpulseScale = collider->frontdir.dot(sepDirection) / collider->frontdir.Length();
-			if (colliderImpulseScale > 0.f)
-				collider->ApplyImpulse(static_cast<const float3>(collider->speed) * colliderImpulseScale * -1.0f);
+			if (!moveCollidee) {
+				// Zero unit velocity in the direction of the other unit, it is is moving towards the other unit.
+				const float colliderImpulseScale = -1.0f * collider->frontdir.dot(sepDirection) / collider->frontdir.Length();
+				if (colliderImpulseScale > 0.f)
+					collider->ApplyImpulse(static_cast<const float3>(collider->speed) * colliderImpulseScale * -1.0f);
+			}
 		}
 
 		if (moveCollidee) {
 			if (collideeMD->TestMoveSquare(collidee, collidee->pos + collideeMoveVec, collideeMoveVec))
 				collidee->Move(collideeMoveVec, true);
-			// Zero unit velocity in the direction of the other unit, it is is moving towards the other unit.
-			const float collidieeImpulseScale = -1.0f * (collidee->frontdir.dot(sepDirection) / collidee->frontdir.Length());
-			if (collidieeImpulseScale > 0.f)
-				collidee->ApplyImpulse(static_cast<const float3>(collidee->speed) * collidieeImpulseScale * -1.0f);
+			if (!moveCollider) {
+				// Zero unit velocity in the direction of the other unit, it is is moving towards the other unit.
+				const float collidieeImpulseScale = (collidee->frontdir.dot(sepDirection) / collidee->frontdir.Length());
+				if (collidieeImpulseScale > 0.f)
+					collidee->ApplyImpulse(static_cast<const float3>(collidee->speed) * collidieeImpulseScale * -1.0f);
+			}
 		}
 	}
 }
