@@ -2174,7 +2174,7 @@ void CGroundMoveType::HandleUnitCollisions(
 		const float3 collideeMoveVec  = collideePushVec + collideeSlideVec;
 
 		if (moveCollider) {
-			if (colliderMD->TestMoveSquare(collider, collider->pos + colliderMoveVec, colliderMoveVec))
+			if (colliderMD->TestMoveSquare(collider, collider->pos + colliderMoveVec, colliderMoveVec, true, false))
 				collider->Move(colliderMoveVec, true);
 			if (!moveCollidee) {
 				// Zero unit velocity in the direction of the other unit, it is is moving towards the other unit.
@@ -2185,7 +2185,7 @@ void CGroundMoveType::HandleUnitCollisions(
 		}
 
 		if (moveCollidee) {
-			if (collideeMD->TestMoveSquare(collidee, collidee->pos + collideeMoveVec, collideeMoveVec))
+			if (collideeMD->TestMoveSquare(collidee, collidee->pos + collideeMoveVec, collideeMoveVec, true, false))
 				collidee->Move(collideeMoveVec, true);
 			if (!moveCollider) {
 				// Zero unit velocity in the direction of the other unit, it is is moving towards the other unit.
