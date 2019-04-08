@@ -2173,14 +2173,20 @@ void CGroundMoveType::HandleUnitCollisions(
 		const float3 colliderMoveVec  = colliderPushVec + colliderSlideVec;
 		const float3 collideeMoveVec  = collideePushVec + collideeSlideVec;
 
+		//LOG("sepDirection (%f,%f,%f)", sepDirection.x, sepDirection.y, sepDirection.z);
+		//LOG("collider: Speed (%f,%f,%f) paramX %f", collider->speed.x, collider->speed.y, collider->speed.z, colliderParams.x);
+		//LOG("collidee: Speed (%f,%f,%f) paramX %f", collidee->speed.x, collidee->speed.y, collidee->speed.z, collideeParams.x);
+		//LOG("colliderImpulseScale %f", -1.0f * (collider->speed * XZVector).dot(sepDirection) / std::max(0.001f, (collider->speed * XZVector).Length()));
+		//LOG("collideeImpulseScale %f", (collidee->speed * XZVector).dot(sepDirection) / std::max(0.001f, (collidee->speed * XZVector).Length()));
+
 		if (moveCollider) {
 			if (colliderMD->TestMoveSquare(collider, collider->pos + colliderMoveVec, colliderMoveVec, true, false))
 				collider->Move(colliderMoveVec, true);
 			if (!moveCollidee) {
 				// Zero unit velocity in the direction of the other unit, it is is moving towards the other unit.
-				const float colliderImpulseScale = -1.0f * collider->frontdir.dot(sepDirection) / collider->frontdir.Length();
+				const float colliderImpulseScale = -1.0f * (collider->speed * XZVector).dot(sepDirection) / std::max(0.001f, (collider->speed * XZVector).Length());
 				if (colliderImpulseScale > 0.f)
-					collider->ApplyImpulse(static_cast<const float3>(collider->speed) * colliderImpulseScale * -1.0f);
+					collider->SetVelocityAndSpeed(static_cast<const float3>(collider->speed) * std::max(0.0f, 1.0f - colliderImpulseScale));
 			}
 		}
 
@@ -2189,9 +2195,9 @@ void CGroundMoveType::HandleUnitCollisions(
 				collidee->Move(collideeMoveVec, true);
 			if (!moveCollider) {
 				// Zero unit velocity in the direction of the other unit, it is is moving towards the other unit.
-				const float collideeImpulseScale = (collidee->frontdir.dot(sepDirection) / collidee->frontdir.Length());
+				const float collideeImpulseScale = (collidee->speed * XZVector).dot(sepDirection) / std::max(0.001f, (collidee->speed * XZVector).Length());
 				if (collideeImpulseScale > 0.f)
-					collidee->ApplyImpulse(static_cast<const float3>(collidee->speed) * collideeImpulseScale * -1.0f);
+					collidee->SetVelocityAndSpeed(static_cast<const float3>(collidee->speed) * std::max(0.0f, 1.0f - collideeImpulseScale));
 			}
 		}
 	}
