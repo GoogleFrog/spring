@@ -2140,7 +2140,7 @@ void CGroundMoveType::HandleUnitCollisions(
 		const float  sepDistance = separationVect.Length() + 0.001f;
 		const float  penDistance = std::max(collisionRadiusSum - sepDistance, 0.001f);
 		const float  penFactor   = penDistance / collisionRadiusSum;
-		const float  sepResponse = std::min(SQUARE_SIZE * 2.0f, penDistance * std::min(1.0f, std::max(0.2f, 8.0f * penFactor)));
+		const float  sepResponse = std::min(SQUARE_SIZE * 2.0f, penDistance * std::min(0.98f, std::max(0.2f, 8.0f * penFactor)));
 
 		const float3 sepDirection   = separationVect / sepDistance;
 		const float3 colResponseVec = sepDirection * XZVector * sepResponse;
@@ -2175,8 +2175,8 @@ void CGroundMoveType::HandleUnitCollisions(
 
 		const float3 colliderPushVec  =  colResponseVec * (moveCollidee ? colliderMassScale : 1.0f) * int(!ignoreCollidee);
 		const float3 collideePushVec  = -colResponseVec * (moveCollider ? collideeMassScale : 1.0f) * collideeMassScale;
-		const float3 colliderSlideVec = collider->rightdir * colliderSlideSign * (1.0f / penDistance) * r2;
-		const float3 collideeSlideVec = collidee->rightdir * collideeSlideSign * (1.0f / penDistance) * r1;
+		const float3 colliderSlideVec = collider->rightdir * colliderSlideSign * (1.0f / std::max(penDistance, 1.0f)) * r2;
+		const float3 collideeSlideVec = collidee->rightdir * collideeSlideSign * (1.0f / std::max(penDistance, 1.0f)) * r1;
 		const float3 colliderMoveVec  = colliderPushVec + colliderSlideVec;
 		const float3 collideeMoveVec  = collideePushVec + collideeSlideVec;
 
@@ -2189,11 +2189,13 @@ void CGroundMoveType::HandleUnitCollisions(
 		float sepAngle = math::acos(sepDirection.x);
 		if (sepDirection.z < 0)
 			sepAngle = math::TWOPI - sepAngle;
-		LOG("pos = (%f, %f), sepAngle = %f, collision %s", sepDirection.x, sepDirection.z, sepAngle, (collideeMoveType->GoodPushDirection(sepAngle) ? "good": "bad"));
+		float collidieeSepAngle = math::fmod(10*math::TWOPI + sepAngle + math::PI, math::TWOPI);
+		//LOG("======= collider: %i ======= collidee: %i ======= ", collider->id, collidee->id);
+		//LOG("pos = (%f, %f), collidieeSepAngle = %f, collision %s", sepDirection.x, sepDirection.z, collidieeSepAngle, (collideeMoveType->GoodPushDirection(collidieeSepAngle) ? "good": "bad"));
 		
 		if (moveCollidee) {
 			// Only push the collidee if it has not found an immobile unit in the push direction.
-			if (collideeMoveType->GoodPushDirection(sepAngle)) {
+			if (collideeMoveType->GoodPushDirection(collidieeSepAngle)) {
 				if (collideeMD->TestMoveSquare(collidee, collidee->pos + collideeMoveVec, collideeMoveVec, true, false))
 					collidee->Move(collideeMoveVec, true);
 				if (!moveCollider) {
@@ -2217,7 +2219,6 @@ void CGroundMoveType::HandleUnitCollisions(
 					collider->SetVelocityAndSpeed(static_cast<const float3>(collider->speed) * std::max(0.0f, 1.0f - colliderImpulseScale));
 
 				// Tell other units to not push the collider into the the collidee, as it is immobile.
-				const float sepAngle = math::fmod(10*math::TWOPI + sepAngle + math::PI, math::TWOPI);
 				const float newWidth = math::PI / 3;
 				if (badPushDirWidth == 0.0f) {
 					badPushDirStart = math::fmod(10*math::TWOPI + sepAngle - newWidth / 2, math::TWOPI);
@@ -2233,7 +2234,7 @@ void CGroundMoveType::HandleUnitCollisions(
 						badPushDirWidth = math::fmod(10*math::TWOPI + badPushDirWidth + negDist + newWidth / 2, math::TWOPI);
 					}
 				}
-				LOG("sepAngle %f, badPushDirStart %f, badPushDirWidth %f", sepAngle, badPushDirStart, badPushDirWidth);
+				//LOG("sepAngle %f, badPushDirStart %f, badPushDirWidth %f", sepAngle, badPushDirStart, badPushDirWidth);
 			}
 		}
 	}

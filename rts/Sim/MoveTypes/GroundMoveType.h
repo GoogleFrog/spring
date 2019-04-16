@@ -95,7 +95,7 @@ public:
 	bool GoodPushDirection(const float angle) const {
 		return (badPushDirWidth == 0 || 
 			(angle < badPushDirStart + badPushDirWidth && angle > badPushDirStart) || 
-			(angle + math::TWOPI < badPushDirStart + badPushDirWidth && angle + math::TWOPI > badPushDirStart));
+			(angle + math::TWOPI < badPushDirStart + badPushDirWidth));
 	}
 
 private:
