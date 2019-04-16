@@ -92,6 +92,12 @@ public:
 	const float3& GetGroundNormal(const float3&) const;
 	float GetGroundHeight(const float3&) const;
 
+	bool GoodPushDirection(const float angle) const {
+		return (badPushDirWidth == 0 || 
+			(angle < badPushDirStart + badPushDirWidth && angle > badPushDirStart) || 
+			(angle + math::TWOPI < badPushDirStart + badPushDirWidth && angle + math::TWOPI > badPushDirStart));
+	}
+
 private:
 	float3 GetObstacleAvoidanceDir(const float3& desiredDir);
 	float3 Here() const;
@@ -199,6 +205,9 @@ private:
 
 	float skidRotSpeed = 0.0f;              /// rotational speed when skidding (radians / (GAME_SPEED frames))
 	float skidRotAccel = 0.0f;              /// rotational acceleration when skidding (radians / (GAME_SPEED frames^2))
+
+	float badPushDirStart = 0.0f;
+	float badPushDirWidth = 0.0f;
 
 	unsigned int pathID = 0;
 	unsigned int nextObstacleAvoidanceFrame = 0;

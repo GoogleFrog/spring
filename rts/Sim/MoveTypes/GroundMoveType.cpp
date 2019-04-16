@@ -118,6 +118,9 @@ CR_REG_METADATA(CGroundMoveType, (
 	CR_MEMBER(skidRotSpeed),
 	CR_MEMBER(skidRotAccel),
 
+	CR_MEMBER(badPushDirStart),
+	CR_MEMBER(badPushDirWidth),
+
 	CR_MEMBER(pathID),
 	CR_MEMBER(nextObstacleAvoidanceFrame),
 
@@ -250,7 +253,7 @@ static void HandleUnitCollisionsAux(
 	// (or those that still have orders)
 	//
 	// CFactory applies random jitter to otherwise equal goal
-	// positions of at most TWOPI elmos, use half as threshold
+	// positions of at most math::TWOPI elmos, use half as threshold
 	// (simply bail if distance between collider and collidee
 	// goal-positions exceeds PI)
 	if (!gmtCollider->IsAtGoalPos(gmtCollidee->goalPos, math::PI))
@@ -2003,6 +2006,9 @@ void CGroundMoveType::HandleUnitCollisions(
 	const bool allowSAT = modInfo.allowSepAxisCollisionTest;
 	const bool forceSAT = (colliderParams.z > 0.1f);
 
+	badPushDirStart = 0.f;
+	badPushDirWidth = 0.f;
+
 	// copy on purpose, since the below can call Lua
 	QuadFieldQuery qfQuery;
 	quadField.GetUnitsExact(qfQuery, collider->pos, colliderParams.x + (colliderParams.y * 2.0f));
@@ -2096,8 +2102,9 @@ void CGroundMoveType::HandleUnitCollisions(
 		//   behavior (making each party stop and block the other) has many corner-cases
 		//   so instead have collider respond as though collidee is semi-static obstacle
 		//   this also happens when both parties are pushResistant
+		const CGroundMoveType* collideeMoveType = static_cast<CGroundMoveType*>(collidee->moveType);
 		const float colliderPosChange = std::max(colliderParams.x, (oldPos - collider->pos).Length());
-		const float collideePosChange = std::max(collideeParams.x, (static_cast<CGroundMoveType*>(collidee->moveType)->oldPos - collidee->pos).Length());
+		const float collideePosChange = std::max(collideeParams.x, (collideeMoveType->oldPos - collidee->pos).Length());
 		
 		pushCollider = pushCollider && (alliedCollision || allowPEU || !collider->blockEnemyPushing || colliderPosChange > 0.8f * collideePosChange);
 		pushCollidee = pushCollidee && (alliedCollision || allowPEU || !collidee->blockEnemyPushing || collideePosChange > 0.8f * colliderPosChange);
@@ -2121,8 +2128,8 @@ void CGroundMoveType::HandleUnitCollisions(
 			continue;
 		}
 
-		const bool moveCollider = ((pushCollider || !pushCollidee) && colliderMobile);
-		const bool moveCollidee = ((pushCollidee || !pushCollider) && collideeMobile);
+		bool moveCollider = ((pushCollider || !pushCollidee) && colliderMobile);
+		bool moveCollidee = ((pushCollidee || !pushCollider) && collideeMobile);
 
 		const float colliderRelRadius = colliderParams.y / (colliderParams.y + collideeParams.y);
 		const float collideeRelRadius = collideeParams.y / (colliderParams.y + collideeParams.y);
@@ -2131,7 +2138,7 @@ void CGroundMoveType::HandleUnitCollisions(
 			(colliderParams.y                     + collideeParams.y                    );
 
 		const float  sepDistance = separationVect.Length() + 0.001f;
-		const float  penDistance = std::max(collisionRadiusSum - sepDistance, 1.0f);
+		const float  penDistance = std::max(collisionRadiusSum - sepDistance, 0.001f);
 		const float  penFactor   = penDistance / collisionRadiusSum;
 		const float  sepResponse = std::min(SQUARE_SIZE * 2.0f, penDistance * std::min(1.0f, std::max(0.2f, 8.0f * penFactor)));
 
@@ -2179,6 +2186,27 @@ void CGroundMoveType::HandleUnitCollisions(
 		//LOG("colliderImpulseScale %f", -1.0f * (collider->speed * XZVector).dot(sepDirection) / std::max(0.001f, (collider->speed * XZVector).Length()));
 		//LOG("collideeImpulseScale %f", (collidee->speed * XZVector).dot(sepDirection) / std::max(0.001f, (collidee->speed * XZVector).Length()));
 
+		float sepAngle = math::acos(sepDirection.x);
+		if (sepDirection.z < 0)
+			sepAngle = math::TWOPI - sepAngle;
+		LOG("pos = (%f, %f), sepAngle = %f, collision %s", sepDirection.x, sepDirection.z, sepAngle, (collideeMoveType->GoodPushDirection(sepAngle) ? "good": "bad"));
+		
+		if (moveCollidee) {
+			// Only push the collidee if it has not found an immobile unit in the push direction.
+			if (collideeMoveType->GoodPushDirection(sepAngle)) {
+				if (collideeMD->TestMoveSquare(collidee, collidee->pos + collideeMoveVec, collideeMoveVec, true, false))
+					collidee->Move(collideeMoveVec, true);
+				if (!moveCollider) {
+					// Zero unit velocity in the direction of the other unit, it is is moving towards the other unit.
+					const float collideeImpulseScale = (collidee->speed * XZVector).dot(sepDirection) / std::max(0.001f, (collidee->speed * XZVector).Length());
+					if (collideeImpulseScale > 0.f)
+						collidee->SetVelocityAndSpeed(static_cast<const float3>(collidee->speed) * std::max(0.0f, 1.0f - collideeImpulseScale));
+				}
+			} else {
+				moveCollidee = false;
+			}
+		}
+
 		if (moveCollider) {
 			if (colliderMD->TestMoveSquare(collider, collider->pos + colliderMoveVec, colliderMoveVec, true, false))
 				collider->Move(colliderMoveVec, true);
@@ -2187,17 +2215,25 @@ void CGroundMoveType::HandleUnitCollisions(
 				const float colliderImpulseScale = -1.0f * (collider->speed * XZVector).dot(sepDirection) / std::max(0.001f, (collider->speed * XZVector).Length());
 				if (colliderImpulseScale > 0.f)
 					collider->SetVelocityAndSpeed(static_cast<const float3>(collider->speed) * std::max(0.0f, 1.0f - colliderImpulseScale));
-			}
-		}
 
-		if (moveCollidee) {
-			if (collideeMD->TestMoveSquare(collidee, collidee->pos + collideeMoveVec, collideeMoveVec, true, false))
-				collidee->Move(collideeMoveVec, true);
-			if (!moveCollider) {
-				// Zero unit velocity in the direction of the other unit, it is is moving towards the other unit.
-				const float collideeImpulseScale = (collidee->speed * XZVector).dot(sepDirection) / std::max(0.001f, (collidee->speed * XZVector).Length());
-				if (collideeImpulseScale > 0.f)
-					collidee->SetVelocityAndSpeed(static_cast<const float3>(collidee->speed) * std::max(0.0f, 1.0f - collideeImpulseScale));
+				// Tell other units to not push the collider into the the collidee, as it is immobile.
+				const float sepAngle = math::fmod(10*math::TWOPI + sepAngle + math::PI, math::TWOPI);
+				const float newWidth = math::PI / 3;
+				if (badPushDirWidth == 0.0f) {
+					badPushDirStart = math::fmod(10*math::TWOPI + sepAngle - newWidth / 2, math::TWOPI);
+					badPushDirWidth = newWidth;
+				} else {
+					// Distances from sepAngle to the edge of the bad angle zone, in the positive or negative directions.
+					const float posDist = math::fmod(10*math::TWOPI + badPushDirStart - sepAngle, math::TWOPI);
+					const float negDist = math::fmod(10*math::TWOPI + sepAngle - badPushDirStart + badPushDirWidth, math::TWOPI);
+					if (posDist < negDist) {
+						badPushDirStart = math::fmod(10*math::TWOPI + sepAngle - newWidth / 2, math::TWOPI);
+						badPushDirWidth = math::fmod(10*math::TWOPI + badPushDirWidth + posDist + newWidth / 2, math::TWOPI);
+					} else {
+						badPushDirWidth = math::fmod(10*math::TWOPI + badPushDirWidth + negDist + newWidth / 2, math::TWOPI);
+					}
+				}
+				LOG("sepAngle %f, badPushDirStart %f, badPushDirWidth %f", sepAngle, badPushDirStart, badPushDirWidth);
 			}
 		}
 	}
