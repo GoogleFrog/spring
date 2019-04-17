@@ -149,6 +149,11 @@ private:
 		const MoveDef* colliderMD
 	);
 
+	void UpdateBadPushAngle(
+		const float angleToAdd,
+		const float angleWidth
+	);
+
 	void SetMainHeading();
 	void ChangeSpeed(float, bool, bool = false);
 	void ChangeHeading(short newHeading);

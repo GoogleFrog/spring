@@ -1756,8 +1756,26 @@ void CGroundMoveType::Fail(bool callScript)
 	eoh->UnitMoveFailed(*owner);
 }
 
-
-
+void CGroundMoveType::UpdateBadPushAngle(
+	const float angleToAdd,
+	const float angleWidth
+) {
+	// Tell other units to treat the unit as immobile when attempting to push it in a range of arcs.
+	if (badPushDirWidth == 0.0f) {
+		badPushDirStart = math::fmod(10*math::TWOPI + angleToAdd - angleWidth / 2, math::TWOPI);
+		badPushDirWidth = angleWidth;
+	} else {
+		// Distances from angleToAdd to the edge of the bad angle zone, in the positive or negative directions.
+		const float posDist = math::fmod(10*math::TWOPI + badPushDirStart - angleToAdd, math::TWOPI);
+		const float negDist = math::fmod(10*math::TWOPI + angleToAdd - badPushDirStart + badPushDirWidth, math::TWOPI);
+		if (posDist < negDist) {
+			badPushDirStart = math::fmod(10*math::TWOPI + angleToAdd - angleWidth / 2, math::TWOPI);
+			badPushDirWidth = math::fmod(10*math::TWOPI + badPushDirWidth + posDist + angleWidth / 2, math::TWOPI);
+		} else {
+			badPushDirWidth = math::fmod(10*math::TWOPI + badPushDirWidth + negDist + angleWidth / 2, math::TWOPI);
+		}
+	}
+}
 
 void CGroundMoveType::HandleObjectCollisions()
 {
@@ -1961,14 +1979,15 @@ bool CGroundMoveType::HandleStaticObjectCollision(
 	{
 		const float  colRadiusSum = colliderRadius + collideeRadius;
 		const float   sepDistance = separationVector.Length() + 0.001f;
-		const float   penDistance = std::max(colRadiusSum - sepDistance, 0.0f);
+		const float3 sepDirection = separationVector/sepDistance;
+		const float   penDistance = std::max(colRadiusSum - sepDistance, 0.001f);
 		const float  colSlideSign = -Sign(collidee->pos.dot(rgt) - pos.dot(rgt));
 
 		const float strafeScale = std::min(std::max(currentSpeed, (oldPos - pos).Length()), penDistance * 0.5f) * (1 - checkYardMap * false);
 		const float bounceScale = penDistance * (1 - checkYardMap *  true);
 
-		strafeVec = (             rgt * colSlideSign) * strafeScale;
-		bounceVec = (separationVector /  sepDistance) * bounceScale;
+		strafeVec = (rgt * colSlideSign) * strafeScale;
+		bounceVec = (      sepDirection) * bounceScale;
 		summedVec = strafeVec + bounceVec;
 
 		if (colliderMD->TestMoveSquare(collider, pos + summedVec, vel, true, true, true)) {
@@ -1985,6 +2004,11 @@ bool CGroundMoveType::HandleStaticObjectCollision(
 			// moving forward through obstacles if not counteracted by this
 			collider->Move((oldPos - pos) + summedVec * 0.25f * (collider->frontdir.dot(separationVector) < 0.25f), true);
 		}
+
+		float sepAngle = math::acos(sepDirection.x);
+		if (sepDirection.z < 0)
+			sepAngle = math::TWOPI - sepAngle;
+		UpdateBadPushAngle(sepAngle, math::TWOPI / 3);
 
 		// same here
 		return (canRequestPath && (penDistance > 0.0f));
@@ -2218,22 +2242,7 @@ void CGroundMoveType::HandleUnitCollisions(
 				if (colliderImpulseScale > 0.f)
 					collider->SetVelocityAndSpeed(static_cast<const float3>(collider->speed) * std::max(0.0f, 1.0f - colliderImpulseScale));
 
-				// Tell other units to not push the collider into the the collidee, as it is immobile.
-				const float newWidth = math::PI / 3;
-				if (badPushDirWidth == 0.0f) {
-					badPushDirStart = math::fmod(10*math::TWOPI + sepAngle - newWidth / 2, math::TWOPI);
-					badPushDirWidth = newWidth;
-				} else {
-					// Distances from sepAngle to the edge of the bad angle zone, in the positive or negative directions.
-					const float posDist = math::fmod(10*math::TWOPI + badPushDirStart - sepAngle, math::TWOPI);
-					const float negDist = math::fmod(10*math::TWOPI + sepAngle - badPushDirStart + badPushDirWidth, math::TWOPI);
-					if (posDist < negDist) {
-						badPushDirStart = math::fmod(10*math::TWOPI + sepAngle - newWidth / 2, math::TWOPI);
-						badPushDirWidth = math::fmod(10*math::TWOPI + badPushDirWidth + posDist + newWidth / 2, math::TWOPI);
-					} else {
-						badPushDirWidth = math::fmod(10*math::TWOPI + badPushDirWidth + negDist + newWidth / 2, math::TWOPI);
-					}
-				}
+				UpdateBadPushAngle(sepAngle, math::TWOPI / 3);
 				//LOG("sepAngle %f, badPushDirStart %f, badPushDirWidth %f", sepAngle, badPushDirStart, badPushDirWidth);
 			}
 		}
