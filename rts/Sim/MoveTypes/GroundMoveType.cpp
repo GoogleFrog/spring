@@ -1761,6 +1761,7 @@ void CGroundMoveType::UpdateBadPushAngle(
 	const float angleWidth
 ) {
 	// Tell other units to treat the unit as immobile when attempting to push it in a range of arcs.
+	// 10*math::TWOPI exists because I want the mathematical modulus operation with the range [0, 2pi)
 	if (badPushDirWidth == 0.0f) {
 		badPushDirStart = math::fmod(10*math::TWOPI + angleToAdd - angleWidth / 2, math::TWOPI);
 		badPushDirWidth = angleWidth;
