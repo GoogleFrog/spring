@@ -1314,6 +1314,8 @@ float3 CGroundMoveType::GetObstacleAvoidanceDir(const float3& desiredDir) {
 	const float avoidanceRadius = std::max(currentSpeed, 1.0f) * (avoider->radius * 2.0f);
 	const float avoiderRadius = avoiderMD->CalcFootPrintMinExteriorRadius();
 
+	const bool allowPEU = modInfo.allowPushingEnemyUnits;
+
 	QuadFieldQuery qfQuery;
 	quadField.GetSolidsExact(qfQuery, avoider->pos, avoidanceRadius, 0xFFFFFFFF, CSolidObject::CSTATE_BIT_SOLIDOBJECTS);
 
@@ -1335,8 +1337,13 @@ float3 CGroundMoveType::GetObstacleAvoidanceDir(const float3& desiredDir) {
 		if (!CMoveMath::CrushResistant(*avoiderMD, avoidee))
 			continue;
 
+		const bool alliedCollision =
+			teamHandler.Ally(avoider->allyteam, avoidee->allyteam) &&
+			teamHandler.Ally(avoidee->allyteam, avoider->allyteam);
+
 		const bool avoideeMobile  = (avoideeMD != nullptr);
-		const bool avoideeMovable = (avoideeUD != nullptr && !static_cast<const CUnit*>(avoidee)->moveType->IsPushResistant());
+		const bool avoideeMovable = ((alliedCollision || allowPEU) && avoideeUD != nullptr &&
+			!static_cast<const CUnit*>(avoidee)->moveType->IsPushResistant());
 
 		const float3 avoideeVector = (avoider->pos + avoider->speed) - (avoidee->pos + avoidee->speed);
 
@@ -2130,7 +2137,7 @@ void CGroundMoveType::HandleUnitCollisions(
 		const CGroundMoveType* collideeMoveType = static_cast<CGroundMoveType*>(collidee->moveType);
 		const float colliderPosChange = std::max(colliderParams.x, (oldPos - collider->pos).Length());
 		const float collideePosChange = std::max(collideeParams.x, (collideeMoveType->oldPos - collidee->pos).Length());
-		
+
 		pushCollider = pushCollider && (alliedCollision || allowPEU || !collider->blockEnemyPushing || colliderPosChange > 0.8f * collideePosChange);
 		pushCollidee = pushCollidee && (alliedCollision || allowPEU || !collidee->blockEnemyPushing || collideePosChange > 0.8f * colliderPosChange);
 		pushCollider = pushCollider && (!collider->beingBuilt && !collider->UsingScriptMoveType() && !collider->moveType->IsPushResistant());

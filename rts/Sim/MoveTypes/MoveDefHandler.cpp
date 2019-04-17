@@ -336,8 +336,8 @@ bool MoveDef::TestMoveSquareRange(
 
 
 
-float MoveDef::CalcFootPrintMinExteriorRadius(float scale) const { return ((1.5f * math::sqrt((xsize * xsize + zsize * zsize)) * 0.5f * SQUARE_SIZE) * scale); }
-float MoveDef::CalcFootPrintMaxInteriorRadius(float scale) const { return ((1.5f * std::max(xsize, zsize) * 0.5f * SQUARE_SIZE) * scale); }
+float MoveDef::CalcFootPrintMinExteriorRadius(float scale) const { return ((1.4f * math::sqrt((xsize * xsize + zsize * zsize)) * 0.5f * SQUARE_SIZE) * scale); }
+float MoveDef::CalcFootPrintMaxInteriorRadius(float scale) const { return ((1.4f * std::max(xsize, zsize) * 0.5f * SQUARE_SIZE) * scale); }
 float MoveDef::CalcFootPrintAxisStretchFactor() const
 {
 	return (std::abs(xsize - zsize) * 1.0f / (xsize + zsize));
