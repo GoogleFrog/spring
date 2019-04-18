@@ -1550,7 +1550,7 @@ bool CGroundMoveType::CanSetNextWayPoint() {
 				const int nwpFigGroupID = geometricObjects->AddLine(pos + (UpVector * 20.0f), nwp + (UpVector * (pos.y + 20.0f)), 8.0f, 1, 4);
 
 				geometricObjects->SetColor(cwpFigGroupID, 1, 0.3f, 0.3f, 0.6f);
-				geometricObjects->SetColor(nwpFigGroupID, 1, 0.3f, 0.3f, 0.6f);
+				geometricObjects->SetColor(nwpFigGroupID, 1, 0.3f, 1, 0.6f);
 			}
 		}
 
