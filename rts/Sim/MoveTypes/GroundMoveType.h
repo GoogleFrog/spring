@@ -88,6 +88,8 @@ public:
 	const SyncedFloat3& GetCurrWayPoint() const { return currWayPoint; }
 	const SyncedFloat3& GetNextWayPoint() const { return nextWayPoint; }
 
+	unsigned int GetRecentUnpushableCollisions() const { return recentUnpushableCollisions; }
+	
 	const float3& GetFlatFrontDir() const { return flatFrontDir; }
 	const float3& GetGroundNormal(const float3&) const;
 	float GetGroundHeight(const float3&) const;
@@ -213,6 +215,8 @@ private:
 
 	float badPushDirStart = 0.0f;
 	float badPushDirWidth = 0.0f;
+	
+	unsigned int recentUnpushableCollisions = 0;
 
 	unsigned int pathID = 0;
 	unsigned int nextObstacleAvoidanceFrame = 0;

@@ -121,6 +121,8 @@ CR_REG_METADATA(CGroundMoveType, (
 	CR_MEMBER(badPushDirStart),
 	CR_MEMBER(badPushDirWidth),
 
+	CR_MEMBER(recentUnpushableCollisions),
+
 	CR_MEMBER(pathID),
 	CR_MEMBER(nextObstacleAvoidanceFrame),
 
@@ -1303,7 +1305,7 @@ float3 CGroundMoveType::GetObstacleAvoidanceDir(const float3& desiredDir) {
 	if (avoider->frontdir.dot(desiredDir) < 0.0f)
 		return lastAvoidanceDir;
 
-	static constexpr float AVOIDER_DIR_WEIGHT = 1.0f;
+	static constexpr float AVOIDER_DIR_WEIGHT = 1.8f;
 	static constexpr float DESIRED_DIR_WEIGHT = 0.5f;
 	static constexpr float LAST_DIR_MIX_ALPHA = 0.7f;
 	static const     float MAX_AVOIDEE_COSINE = math::cosf(120.0f * math::DEG_TO_RAD);
@@ -2041,6 +2043,13 @@ void CGroundMoveType::HandleUnitCollisions(
 	badPushDirStart = 0.f;
 	badPushDirWidth = 0.f;
 
+	// Reduce movement speed if the unit collides with more than one immobile unit.
+	if (recentUnpushableCollisions > 0) {
+		recentUnpushableCollisions -= 1;
+		if (recentUnpushableCollisions > 7)
+			recentUnpushableCollisions = 7;
+	}
+
 	// copy on purpose, since the below can call Lua
 	QuadFieldQuery qfQuery;
 	quadField.GetUnitsExact(qfQuery, collider->pos, colliderParams.x + (colliderParams.y * 2.0f));
@@ -2207,8 +2216,8 @@ void CGroundMoveType::HandleUnitCollisions(
 
 		const float3 colliderPushVec  =  colResponseVec * (moveCollidee ? colliderMassScale : 1.0f) * int(!ignoreCollidee);
 		const float3 collideePushVec  = -colResponseVec * (moveCollider ? collideeMassScale : 1.0f) * collideeMassScale;
-		const float3 colliderSlideVec = collider->rightdir * colliderSlideSign * (1.0f / std::max(penDistance, 1.0f)) * r2;
-		const float3 collideeSlideVec = collidee->rightdir * collideeSlideSign * (1.0f / std::max(penDistance, 1.0f)) * r1;
+		const float3 colliderSlideVec = collider->rightdir * colliderSlideSign * r2;
+		const float3 collideeSlideVec = collidee->rightdir * collideeSlideSign * r1;
 		const float3 colliderMoveVec  = colliderPushVec + colliderSlideVec;
 		const float3 collideeMoveVec  = collideePushVec + collideeSlideVec;
 
@@ -2231,10 +2240,12 @@ void CGroundMoveType::HandleUnitCollisions(
 				if (collideeMD->TestMoveSquare(collidee, collidee->pos + collideeMoveVec, collideeMoveVec, true, false))
 					collidee->Move(collideeMoveVec, true);
 				if (!moveCollider) {
-					// Zero unit velocity in the direction of the other unit, it is is moving towards the other unit.
+					// Speed loss threshold for the dot product (translates into an angle).
+					const float collideeSLT = (collideeMoveType->GetRecentUnpushableCollisions() > 1 ? 0.0f : 0.8f);
 					const float collideeImpulseScale = (collidee->speed * XZVector).dot(sepDirection) / std::max(0.001f, (collidee->speed * XZVector).Length());
-					if (collideeImpulseScale > 0.f)
-						collidee->SetVelocityAndSpeed(static_cast<const float3>(collidee->speed) * std::max(0.0f, 1.0f - collideeImpulseScale));
+					// Zero unit velocity in the direction of the other unit, it is is moving towards the other unit.
+					if (collideeImpulseScale > collideeSLT)
+						collidee->SetVelocityAndSpeed(static_cast<const float3>(collidee->speed) * std::max(0.0f, 1.0f - (collideeSLT - collideeImpulseScale)/(collideeSLT - 1.0f)));
 				}
 			} else {
 				moveCollidee = false;
@@ -2245,13 +2256,16 @@ void CGroundMoveType::HandleUnitCollisions(
 			if (colliderMD->TestMoveSquare(collider, collider->pos + colliderMoveVec, colliderMoveVec, true, false))
 				collider->Move(colliderMoveVec, true);
 			if (!moveCollidee) {
-				// Zero unit velocity in the direction of the other unit, it is is moving towards the other unit.
+				// Speed loss threshold for the dot product (translates into an angle).
+				const float colliderSLT = (recentUnpushableCollisions > 1 ? 0.0f : 0.8f);
 				const float colliderImpulseScale = -1.0f * (collider->speed * XZVector).dot(sepDirection) / std::max(0.001f, (collider->speed * XZVector).Length());
-				if (colliderImpulseScale > 0.f)
-					collider->SetVelocityAndSpeed(static_cast<const float3>(collider->speed) * std::max(0.0f, 1.0f - colliderImpulseScale));
+				// Zero unit velocity in the direction of the other unit, it is is moving towards the other unit.
+				if (colliderImpulseScale > colliderSLT)
+					collider->SetVelocityAndSpeed(static_cast<const float3>(collider->speed) * std::max(0.0f, 1.0f - (colliderSLT - colliderImpulseScale)/(colliderSLT - 1.0f)));
 
 				UpdateBadPushAngle(sepAngle, math::TWOPI / 3);
-				//LOG("sepAngle %f, badPushDirStart %f, badPushDirWidth %f", sepAngle, badPushDirStart, badPushDirWidth);
+				recentUnpushableCollisions += 1;
+				//LOG("recentUnpushableCollisions %i", recentUnpushableCollisions);
 			}
 		}
 	}
