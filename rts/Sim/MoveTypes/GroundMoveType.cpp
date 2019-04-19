@@ -2711,6 +2711,7 @@ void CGroundMoveType::InitMemberPtrs(MemberData* memberData)
 	memberData->floats[6].second = &minReverseAngle;
 	memberData->floats[7].second = &maxReverseSpeed;
 	memberData->floats[8].second = &sqSkidSpeedMult;
+	memberData->floats[9].second = &pushPriority;
 }
 
 bool CGroundMoveType::SetMemberValue(unsigned int memberHash, void* memberValue)

@@ -429,8 +429,8 @@ void CSolidObject::Kill(CUnit* killer, const float3& impulse, bool crushed)
 
 
 
-float CSolidObject::CalcFootPrintMinExteriorRadius(float scale) const { return ((1.4f * math::sqrt((xsize * xsize + zsize * zsize)) * 0.5f * SQUARE_SIZE) * scale); }
-float CSolidObject::CalcFootPrintMaxInteriorRadius(float scale) const { return ((1.4f * std::max(xsize, zsize) * 0.5f * SQUARE_SIZE) * scale); }
+float CSolidObject::CalcFootPrintMinExteriorRadius(float scale) const { return ((1.32f * math::sqrt((xsize * xsize + zsize * zsize)) * 0.5f * SQUARE_SIZE) * scale); }
+float CSolidObject::CalcFootPrintMaxInteriorRadius(float scale) const { return ((1.32f * std::max(xsize, zsize) * 0.5f * SQUARE_SIZE) * scale); }
 float CSolidObject::CalcFootPrintAxisStretchFactor() const
 {
 	return (std::abs(xsize - zsize) * 1.0f / (xsize + zsize));
