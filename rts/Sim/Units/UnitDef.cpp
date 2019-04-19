@@ -82,6 +82,7 @@ UnitDef::UnitDef()
 	, turnInPlace(false)
 	, turnInPlaceSpeedLimit(0.0f)
 	, turnInPlaceAngleLimit(0.0f)
+	, turnSpeedModMult(1.0f)
 	, collide(false)
 	, losHeight(0.0f)
 	, radarHeight(0.0f)
@@ -443,7 +444,7 @@ UnitDef::UnitDef(const LuaTable& udTable, const std::string& unitName, int id)
 	turnInPlaceSpeedLimit /= std::max(speed / GAME_SPEED, 1.0f);
 	turnInPlaceSpeedLimit = udTable.GetFloat("turnInPlaceSpeedLimit", std::min(speed, turnInPlaceSpeedLimit));
 	turnInPlaceAngleLimit = udTable.GetFloat("turnInPlaceAngleLimit", 0.0f);
-
+	turnSpeedModMult      = udTable.GetFloat("turnSpeedModMult", 1.0f);
 
 	transportSize     = udTable.GetInt("transportSize",      0);
 	minTransportSize  = udTable.GetInt("minTransportSize",   0);

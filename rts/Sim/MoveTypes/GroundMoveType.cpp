@@ -830,7 +830,7 @@ void CGroundMoveType::ChangeSpeed(float newWantedSpeed, bool wantReverse, bool f
 				      float turnModSpeed = turnMaxSpeed;
 
 				if (reqTurnAngle != 0.0f)
-					turnModSpeed *= Clamp(maxTurnAngle / reqTurnAngle, 0.1f, 1.0f);
+					turnModSpeed *= ud->turnSpeedModMult * Clamp(maxTurnAngle / reqTurnAngle, 0.1f, 1.0f);
 
 				if (waypointDir.SqLength() > 0.1f) {
 					if (!ud->turnInPlace) {

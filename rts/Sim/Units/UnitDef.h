@@ -145,6 +145,9 @@ public:
 	///< maximum angle of a turn that can be entered
 	///< without slowing down
 	float turnInPlaceAngleLimit;
+	///< Multiplier for the speed that turning units 
+	///< with turnInPlace=true slow to when turning.
+	float turnSpeedModMult;
 
 	bool collide;
 
