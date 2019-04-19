@@ -411,7 +411,7 @@ CGroundMoveType::CGroundMoveType(CUnit* owner):
 	// unit-gravity must always be negative
 	myGravity = mix(-math::fabs(ud->myGravity), mapInfo->map.gravity, ud->myGravity == 0.0f);
 
-	ownerRadius = md->CalcFootPrintMinExteriorRadius();
+	ownerRadius = owner->CalcFootPrintMinExteriorRadius();
 }
 
 CGroundMoveType::~CGroundMoveType()
@@ -1317,7 +1317,7 @@ float3 CGroundMoveType::GetObstacleAvoidanceDir(const float3& desiredDir) {
 	// avoider always uses its never-rotated MoveDef footprint
 	// note: should increase radius for smaller turnAccel values
 	const float avoidanceRadius = std::max(currentSpeed, 1.0f) * (avoider->radius * 2.0f);
-	const float avoiderRadius = avoiderMD->CalcFootPrintMinExteriorRadius();
+	const float avoiderRadius = avoider->CalcFootPrintMinExteriorRadius();
 
 	const bool allowPEU = modInfo.allowPushingEnemyUnits;
 
@@ -1352,11 +1352,8 @@ float3 CGroundMoveType::GetObstacleAvoidanceDir(const float3& desiredDir) {
 
 		const float3 avoideeVector = (avoider->pos + avoider->speed) - (avoidee->pos + avoidee->speed);
 
-		// use the avoidee's MoveDef footprint as radius if it is mobile
-		// use the avoidee's Unit (not UnitDef) footprint as radius otherwise
-		const float avoideeRadius = avoideeMobile?
-			avoideeMD->CalcFootPrintMinExteriorRadius():
-			avoidee->CalcFootPrintMinExteriorRadius();
+		// use the avoidee's footprint because it should match the movedef footprint, unless explicitly set to be distinct.
+		const float avoideeRadius = avoidee->CalcFootPrintMinExteriorRadius();
 		const float avoidanceRadiusSum = avoiderRadius + avoideeRadius;
 		const float avoidanceMassSum = avoider->mass + avoidee->mass;
 		const float avoideeMassScale = avoideeMobile? (avoidee->mass / avoidanceMassSum): 1.0f;
@@ -1806,8 +1803,8 @@ void CGroundMoveType::HandleObjectCollisions()
 		// NOTE:
 		//   use the collider's MoveDef footprint as radius since it is
 		//   always mobile (its UnitDef footprint size may be different)
-		const float colliderFootPrintRadius = colliderMD->CalcFootPrintMaxInteriorRadius(); // ~= CalcFootPrintMinExteriorRadius(0.75f)
-		const float colliderAxisStretchFact = colliderMD->CalcFootPrintAxisStretchFactor();
+		const float colliderFootPrintRadius = collider->CalcFootPrintMaxInteriorRadius(); // ~= CalcFootPrintMinExteriorRadius(0.75f)
+		const float colliderAxisStretchFact = collider->CalcFootPrintAxisStretchFactor();
 
 		HandleUnitCollisions(collider, {collider->speed.w, colliderFootPrintRadius, colliderAxisStretchFact}, colliderUD, colliderMD);
 		HandleFeatureCollisions(collider, {collider->speed.w, colliderFootPrintRadius, colliderAxisStretchFact}, colliderUD, colliderMD);
@@ -2094,9 +2091,8 @@ void CGroundMoveType::HandleUnitCollisions(
 		if (collider->loadingTransportId == collidee->id) continue;
 		if (collidee->loadingTransportId == collider->id) continue;
 
-		// use the collidee's MoveDef footprint as radius if it is mobile
-		// use the collidee's Unit (not UnitDef) footprint as radius otherwise
-		const float2 collideeParams = {collidee->speed.w, collideeMobile? collideeMD->CalcFootPrintMaxInteriorRadius(): collidee->CalcFootPrintMaxInteriorRadius()};
+		// use the collidee's Unit (not UnitDef) footprint as radius because it should match the movedef, unless explicitly set otherwise
+		const float2 collideeParams = {collidee->speed.w, collidee->CalcFootPrintMaxInteriorRadius()};
 		const float4 separationVect = {collider->pos - collidee->pos, Square(colliderParams.y + collideeParams.y)};
 
 		if (!checkCollisionFuncs[allowSAT && (forceSAT || (collideeMD->CalcFootPrintAxisStretchFactor() > 0.1f))](separationVect, collider, collidee, colliderMD, collideeMD))

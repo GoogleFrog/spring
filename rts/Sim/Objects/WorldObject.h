@@ -58,7 +58,7 @@ public:
 	float3 pos;                 ///< position of the very bottom of the object
 	float4 speed;               ///< current velocity vector (elmos/frame), .w = |velocity|
 
-	float radius = 0.0f;        ///< used for collisions
+	float radius = 0.0f;        ///< used for flying object collisions
 	float height = 0.0f;        ///< The height of this object
 	float sqRadius = 0.0f;
 	float drawRadius = 0.0f;    ///< unsynced, used for projectile visibility culling
