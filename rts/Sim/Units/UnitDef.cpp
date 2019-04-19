@@ -109,6 +109,7 @@ UnitDef::UnitDef()
 	, canfly(false)
 	, floatOnWater(false)
 	, pushResistant(false)
+	, pushPriority(0.0f)
 	, strafeToAttack(false)
 	, stopToAttack(false)
 	, minCollisionSpeed(0.0f)
@@ -361,6 +362,7 @@ UnitDef::UnitDef(const LuaTable& udTable, const std::string& unitName, int id)
 	minCollisionSpeed = udTable.GetFloat("minCollisionSpeed", 1.0f);
 	slideTolerance = udTable.GetFloat("slideTolerance", 0.0f); // disabled
 	pushResistant = udTable.GetBool("pushResistant", false);
+	pushPriority = udTable.GetFloat("pushPriority", 0.0f);
 	selfDCountdown = udTable.GetInt("selfDestructCountdown", 5);
 
 	speed  = udTable.GetFloat("maxVelocity", 0.0f) * GAME_SPEED;

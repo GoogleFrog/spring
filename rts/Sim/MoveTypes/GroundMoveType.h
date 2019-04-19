@@ -22,9 +22,9 @@ public:
 	~CGroundMoveType();
 
 	struct MemberData {
-		std::array<std::pair<unsigned int,  bool*>, 3>  bools;
-		std::array<std::pair<unsigned int, short*>, 1> shorts;
-		std::array<std::pair<unsigned int, float*>, 9> floats;
+		std::array<std::pair<unsigned int,  bool*>,  3>  bools;
+		std::array<std::pair<unsigned int, short*>,  1> shorts;
+		std::array<std::pair<unsigned int, float*>, 10> floats;
 	};
 
 	void PostLoad();
@@ -50,10 +50,11 @@ public:
 	void InitMemberPtrs(MemberData* memberData);
 	bool SetMemberValue(unsigned int memberHash, void* memberValue) override;
 
-	bool OnSlope(float minSlideTolerance);
-	bool IsReversing() const override { return reversing; }
-	bool IsPushResistant() const override { return pushResistant; }
-	bool WantToStop() const { return (pathID == 0 && (!useRawMovement || atEndOfPath)); }
+	bool  OnSlope(float minSlideTolerance);
+	bool  IsReversing() const override { return reversing; }
+	bool  IsPushResistant() const override { return pushResistant; }
+	float GetPushPriority() const { return pushPriority; }
+	bool  WantToStop() const { return (pathID == 0 && (!useRawMovement || atEndOfPath)); }
 
 	void TriggerSkipWayPoint() {
 		currWayPoint.y = -1.0f;
@@ -231,12 +232,13 @@ private:
 	bool atEndOfPath = false;
 	bool wantRepath = false;
 
-	bool reversing = false;
-	bool idling = false;
-	bool pushResistant = false;
-	bool canReverse = false;
-	bool useMainHeading = false;            /// if true, turn toward mainHeadingPos until weapons[0] can TryTarget() it
-	bool useRawMovement = false;            /// if true, move towards goal without invoking PFS (unrelated to MoveDef::allowRawMovement)
+	bool  reversing = false;
+	bool  idling = false;
+	bool  pushResistant = false;
+	float pushPriority = 0.0f;
+	bool  canReverse = false;
+	bool  useMainHeading = false;            /// if true, turn toward mainHeadingPos until weapons[0] can TryTarget() it
+	bool  useRawMovement = false;            /// if true, move towards goal without invoking PFS (unrelated to MoveDef::allowRawMovement)
 };
 
 #endif // GROUNDMOVETYPE_H

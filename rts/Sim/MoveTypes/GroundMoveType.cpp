@@ -139,6 +139,7 @@ CR_REG_METADATA(CGroundMoveType, (
 	CR_MEMBER(reversing),
 	CR_MEMBER(idling),
 	CR_MEMBER(pushResistant),
+	CR_MEMBER(pushPriority),
 	CR_MEMBER(canReverse),
 	CR_MEMBER(useMainHeading),
 	CR_MEMBER(useRawMovement),
@@ -167,6 +168,7 @@ static CGroundMoveType::MemberData gmtMemberData = {
 		std::pair<unsigned int, float*>{MEMBER_LITERAL_HASH("minReverseAngle"), nullptr},
 		std::pair<unsigned int, float*>{MEMBER_LITERAL_HASH("maxReverseSpeed"), nullptr},
 		std::pair<unsigned int, float*>{MEMBER_LITERAL_HASH("sqSkidSpeedMult"), nullptr},
+		std::pair<unsigned int, float*>{MEMBER_LITERAL_HASH(   "pushPriority"), nullptr},
 	}},
 };
 
@@ -382,6 +384,7 @@ CGroundMoveType::CGroundMoveType(CUnit* owner):
 	minScriptChangeHeading((SPRING_CIRCLE_DIVS - 1) >> 1),
 
 	pushResistant((owner != nullptr) && owner->unitDef->pushResistant),
+	pushPriority((owner != nullptr) && owner->unitDef->pushPriority),
 	canReverse((owner != nullptr) && (owner->unitDef->rSpeed > 0.0f))
 {
 	// creg
@@ -2167,6 +2170,15 @@ void CGroundMoveType::HandleUnitCollisions(
 				ReRequestPath(false);
 
 			continue;
+		}
+
+		// If both units are unpushable, push the unit with the higher push priority.
+		if (!pushCollider && !pushCollidee) {
+			const float collideePushPriority = collideeMoveType->GetPushPriority();
+			if (pushPriority > collideePushPriority)
+				pushCollider = true;
+			else if (collideePushPriority > pushPriority)
+				pushCollidee = true;
 		}
 
 		bool moveCollider = ((pushCollider || !pushCollidee) && colliderMobile);
