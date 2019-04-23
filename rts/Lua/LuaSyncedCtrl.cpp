@@ -2636,6 +2636,8 @@ int LuaSyncedCtrl::SetUnitPosition(lua_State* L)
 	}
 
 	unit->ForcedMove(pos);
+	if (luaL_optboolean(L, 5, true))
+		unit->DisjointInterpolation();
 	return 0;
 }
 
@@ -3104,6 +3106,8 @@ int LuaSyncedCtrl::SetFeaturePosition(lua_State* L)
 	pos.z = luaL_checkfloat(L, 4);
 
 	feature->ForcedMove(pos);
+	if (luaL_optboolean(L, 5, true))
+		feature->DisjointInterpolation();
 	return 0;
 }
 
