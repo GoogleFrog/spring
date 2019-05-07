@@ -188,6 +188,7 @@ void CFeature::Initialize(const FeatureLoadParams& params)
 
 	// set position before mid-position
 	Move((params.pos).cClampInMap(), false);
+	DisjointInterpolation();
 	// use base-class version, AddFeature() below
 	// will already insert us in the update-queue
 	CWorldObject::SetVelocity(params.speed);
@@ -548,6 +549,7 @@ bool CFeature::UpdateVelocity(
 bool CFeature::UpdatePosition()
 {
 	const float3 oldPos = pos;
+	prevPos = pos;
 	// const float4 oldSpd = speed;
 
 	if (moveCtrl.enabled) {

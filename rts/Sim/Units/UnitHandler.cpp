@@ -320,7 +320,11 @@ void CUnitHandler::DeleteUnit(CUnit* delUnit)
 void CUnitHandler::UpdateUnitMoveTypes()
 {
 	SCOPED_TIMER("Sim::Unit::MoveType");
-
+	for (activeUpdateUnit = 0; activeUpdateUnit < activeUnits.size(); ++activeUpdateUnit) {
+			CUnit* unit = activeUnits[activeUpdateUnit];
+			unit->prevPos = unit->pos;
+		}
+	
 	for (activeUpdateUnit = 0; activeUpdateUnit < activeUnits.size(); ++activeUpdateUnit) {
 		CUnit* unit = activeUnits[activeUpdateUnit];
 		AMoveType* moveType = unit->moveType;
