@@ -321,6 +321,12 @@ void CUnitHandler::UpdateUnitMoveTypes()
 {
 	SCOPED_TIMER("Sim::Unit::MoveType");
 
+	// Unit-unit collision means that prevPos must be set before any unit updates.
+	for (activeUpdateUnit = 0; activeUpdateUnit < activeUnits.size(); ++activeUpdateUnit) {
+		CUnit* unit = activeUnits[activeUpdateUnit];
+		unit->prevPos = unit->pos;
+	}
+
 	for (activeUpdateUnit = 0; activeUpdateUnit < activeUnits.size(); ++activeUpdateUnit) {
 		CUnit* unit = activeUnits[activeUpdateUnit];
 		AMoveType* moveType = unit->moveType;

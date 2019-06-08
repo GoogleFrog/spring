@@ -87,6 +87,7 @@ CGroundFlash::CGroundFlash(const float3& _pos)
 	depthMask = false;
 	alwaysVisible = false;
 	pos = _pos;
+	DisjointInterpolation();
 }
 
 float3 CGroundFlash::CalcNormal(const float3 midPos, const float3 camDir, float quadSize) const

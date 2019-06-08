@@ -18,6 +18,7 @@ public:
 	{
 		SetPosition(pos);
 		SetVelocity(spd);
+		DisjointInterpolation();
 	}
 
 	virtual ~CWorldObject() {}
@@ -34,6 +35,8 @@ public:
 		SetSpeed(v);
 	}
 
+	void DisjointInterpolation() {prevPos = pos; }
+
 	// by default, SetVelocity does not set magnitude (for efficiency)
 	// so SetSpeed must be explicitly called to update the w-component
 	float SetSpeed(const float3& v) { return (speed.w = v.Length()); }
@@ -48,8 +51,8 @@ public:
 	void SetRadiusAndHeight(const S3DModel* model);
 
 	// extrapolated base-positions; used in unsynced code
-	float3 GetDrawPos(                float t) const { return (pos + speed * t); }
-	float3 GetDrawPos(const float3 v, float t) const { return (pos +     v * t); }
+	float3 GetDrawPos(                float t) const { return (pos + (pos - prevPos) * t); }
+	float3 GetDrawPos(const float3 v, float t) const { return (pos +               v * t); }
 
 public:
 	int id = -1;
@@ -57,6 +60,7 @@ public:
 
 	float3 pos;                 ///< position of the very bottom of the object
 	float4 speed;               ///< current velocity vector (elmos/frame), .w = |velocity|
+	float3 prevPos;             ///< position at the start of the frame
 
 	float radius = 0.0f;        ///< used for collisions
 	float height = 0.0f;        ///< The height of this object

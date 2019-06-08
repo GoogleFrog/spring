@@ -16,6 +16,7 @@ CR_REG_METADATA(CWorldObject, (
 	CR_MEMBER_BEGINFLAG(CM_Config),
 		CR_MEMBER(pos),
 		CR_MEMBER(speed),
+		CR_MEMBER(prevPos),
 		CR_MEMBER(useAirLos),
 		CR_MEMBER(alwaysVisible),
 	CR_MEMBER_ENDFLAG(CM_Config),
